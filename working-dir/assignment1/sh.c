@@ -60,23 +60,51 @@ runcmd(struct cmd *cmd)
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
       exit(0);
-    fprintf(stderr, "exec not implemented\n");
+    // fprintf(stderr, "exec not implemented\n");
     // Your code here ...
-    execlp(ecmd->argv[0], ecmd->argv);
+    // int argcnt = 0;
+    // while (ecmd->argv[argcnt++] != 0) {}
+    // fprintf(stdout, "ecmd argcnt is %d\n", argcnt);
+    execvp(ecmd->argv[0], ecmd->argv);
     break;
 
   case '>':
   case '<':
     rcmd = (struct redircmd*)cmd;
-    fprintf(stderr, "redir not implemented\n");
+    // fprintf(stderr, "redir not implemented\n");
     // Your code here ...
+    // int mask = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+    int fd = open(rcmd->file, rcmd->mode);
+    // fprintf(stdout, "file fd=%d, redircmd fd=%d, file=%s, mode=%d\n", fd, rcmd->fd, rcmd->file, rcmd->mode);
+    dup2(fd, rcmd->fd);
     runcmd(rcmd->cmd);
+    close(fd);
     break;
 
   case '|':
     pcmd = (struct pipecmd*)cmd;
-    fprintf(stderr, "pipe not implemented\n");
+    // fprintf(stderr, "pipe not implemented\n");
     // Your code here ...
+    pipe(p);
+    if (fork1() == 0)
+    {
+      close(1);
+      dup(p[1]); // write end
+      close(p[0]);
+      close(p[1]);
+      runcmd(pcmd->left);
+    }
+    if (fork1() == 0)
+    {
+      close(0);
+      dup(p[0]); // read end
+      close(p[1]);
+      close(p[0]);
+      runcmd(pcmd->right);
+    }
+    close(p[0]);
+    close(p[1]);
+    wait(&r);
     break;
   }    
   exit(0);
