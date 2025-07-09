@@ -1,0 +1,3 @@
+[submodule "working-dir/lab"]
+	path = working-dir/lab
+	url = git@github.com:snow-orld/MIT6.828-jos.git
